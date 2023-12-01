@@ -24,7 +24,9 @@ def init():
     create_file(path, '__init__.py')
     create_file(data_path, 'test.txt')
     create_file(data_path, 'data.txt')
-    write_file(path, 'solve.py', ['import solver.utils\n\n', 'def solve(type, part):\n', '  print(\'Solver for day {} called.\')'.format(day)])
+    solve_file = os.path.join(path, 'solve.py')
+    template_file = os.path.join(os.getcwd(), 'preparer', 'template.py')
+    copy_file(template_file, solve_file)
 
 def create_folder(path):
   if (not os.path.exists(path)):
@@ -37,3 +39,8 @@ def create_file(path, name):
 def write_file(path, name, content):
   with open(os.path.join(path, name), 'w') as file:
     file.writelines(content)
+
+def copy_file(sourcePath, targetPath):
+  with open(sourcePath, 'r') as source, open(targetPath, 'w') as target:
+    for line in source:
+      target.write(line)

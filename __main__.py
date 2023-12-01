@@ -6,7 +6,7 @@ import importlib
 def __main__():
   parser = ArgumentParser(prog="AoC 2023", description='Solves AoC 2023 puzzles')
   parser.add_argument('-d', '--day', choices=range(1, 26), type=int, required=True)
-  parser.add_argument('-t', '--type', choices=['test', 'puzzle'], default='puzzle')
+  parser.add_argument('-t', '--type', choices=['test', 'puzzle'], default='test')
   parser.add_argument('-p', '--part', choices=['first', 'second'], default='first')
   args = parser.parse_args()
 
