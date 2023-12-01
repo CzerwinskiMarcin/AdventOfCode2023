@@ -1,31 +1,21 @@
-import solver.utils
+from solver.utils.file_utils import *
+import os
 
 def solve(type, part):
-  if type == 'test':
-    solve_test(part)
-  else:
-    solve_puzzle(part)
+  target_data_file = 'test.txt' if type == 'test' else 'data.txt'
+  solve_directory_path = os.path.dirname(__file__)
+  filepath = os.path.join(solve_directory_path, 'data', target_data_file)
+  data = read_lines(filepath)
+  return do_solve(part, data)
 
-def solve_test(part):
+def do_solve(part, data):
   if part == 'first':
-    solve_test_first_part()
+    return solve_first_part(data)
   else:
-    solve_test_second_part()
+    return solve_second_part(data)
 
-def solve_test_first_part():
+def solve_first_part(data):
   pass
 
-def solve_test_second_part():
-  pass
-
-def solve_puzzle(part):
-  if part == 'first':
-    solve_puzzle_first_part()
-  else:
-    solve_puzzle_second_part()
-
-def solve_puzzle_first_part():
-  pass
-
-def solve_puzzle_second_part():
+def solve_second_part(data):
   pass

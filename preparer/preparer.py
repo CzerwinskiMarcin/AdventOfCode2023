@@ -12,6 +12,7 @@ def init():
   create_file(solver_directory, '__init__.py')
   create_file(solutions_directory, '__init__.py')
   create_file(utils_directory, '__init__.py')
+  copy_file(os.path.join(working_directory, 'preparer', 'file_utils.py'), os.path.join(utils_directory, 'file_utils.py'))
 
   for day in range(1, 26):
     directory_name = 'day_{}'.format(day) if day >= 10 else 'day_0{}'.format(day)
