@@ -15,6 +15,8 @@ def __main__():
   sys.path.append(os.path.join(os.getcwd(), 'solver', 'utils'))
 
   module = importlib.import_module('solver.solutions.day_{}.solve'.format(day))
-  module.solve(type=args.type, part=args.part)
+  result = module.solve(type=args.type, part=args.part)
+
+  print('Result of {} from day {}: {}'.format(args.type, day, result))
 
 __main__()
