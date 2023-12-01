@@ -11,7 +11,6 @@ def __main__():
   args = parser.parse_args()
 
   day = '0{}'.format(args.day) if args.day <= 9 else '{}'.format(args.day)
-  print(day)
 
   sys.path.append(os.path.join(os.getcwd(), 'solver', 'utils'))
 
