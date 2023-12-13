@@ -1,5 +1,6 @@
 from solver.utils.file_utils import *
 import os
+import re
 
 instruction_map = {
   'L': 0,
@@ -24,7 +25,12 @@ def solve_first_part(data):
   return count_steps('AAA', 'ZZZ', data)
 
 def solve_second_part(data):
-  pass
+  data = format_data(data)
+  origins = [map['origin'] for map in data['maps'] if re.match(r'..A', map['origin'])]
+  paths_data  = [define_loop_paths_data(origin, data) for origin in origins]
+  print(paths_data)
+  return
+  return calculate_ending_points(paths_data)
 
 def format_data(data):
   d = [x for x in data if x != '']
@@ -46,21 +52,62 @@ def count_steps(origin, end, data):
 
   while not is_at_end:
     steps += 1
-    # print('Step', steps)
-    current_direction = instructions[steps % len(instructions) - 1]
-    # print(f'\tInstructions: {instructions}')
-    # print(f'\tCurrent direction index: {steps % len(instructions)}')
-    # print(f'\tCurrent direction: {instructions[steps % len(instructions)]}')
-    current_map = find_map_with_origin(origin, maps)
-    # print(f'\tCurrent map {current_map}')
-    destination = current_map['destinations'][current_direction]
-    # print(f'\tDestination: {destination}')
+    destination = make_step(origin, maps, steps, instructions)
 
     is_at_end = destination == end
     origin = destination
-    # print()
 
   return steps
 
 def find_map_with_origin(origin, maps):
   return [map for map in maps if map['origin'] == origin][0]
+
+def make_step(origin, maps, step_number, instructions):
+    current_direction = instructions[step_number % len(instructions) - 1]
+    current_map = find_map_with_origin(origin, maps)
+    return current_map['destinations'][current_direction]
+  
+def define_loop_paths_data(origin, data):
+  maps = data['maps']
+  instructions = data['instructions']
+  path = []
+  looped = False
+  was_at_end = False
+  step = 0
+  loop_enter = None
+
+  while not looped:
+    step += 1
+    next_position = make_step(origin, maps, step, instructions)
+    origin = next_position
+
+    if was_at_end:
+      loop_enter = next_position
+      looped = True
+    else:
+      path.append(next_position)
+
+    if re.match(r'..Z', next_position):
+      was_at_end = True
+  
+  loop_offset = path.index(loop_enter)
+  path_length = len(path) - loop_offset
+
+  return {'offset': loop_offset, 'length': path_length}
+
+def calculate_ending_points(paths_data):
+  for path_data in paths_data:
+    path_data['end_position_step'] = path_data['offset'] + path_data['length']
+
+  all_at_end = False
+
+  while not all_at_end:
+    min_pos_path = min(paths_data, key=get_end_position_step)
+    min_pos_path['end_position_step'] += min_pos_path['length']
+    all_at_end = all(path['end_position_step'] == min_pos_path['end_position_step'] for path in paths_data)
+    print(min_pos_path['end_position_step'])
+  
+  return paths_data[0]['end_position_step']
+
+def get_end_position_step(path_data):
+  return path_data['end_position_step']
