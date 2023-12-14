@@ -26,9 +26,9 @@ def solve_first_part(data):
   patterns_vertical = [int(point) for point in vertical_symmetries]
   return sum(patterns_vertical + patterns_horizontal)
 
-
 def solve_second_part(data):
-  pass
+  data = format_data(data)
+  return calculate_patterns_with_smudge(data)
 
 def format_data(data):
   maps = []
@@ -49,14 +49,15 @@ def format_data(data):
   maps.append(map_data)
   return maps
 
-def find_vertical_symmetry(map_data):
+def find_vertical_symmetry(map_data, omit = None):
   map = map_data['map']
   length = map_data['length']
   height = map_data['height']
   for x in range(map_data['length'] - 1):
+    if omit and omit == x + 1:
+      continue
     left_col_chars = get_map_col(map, x, length, height) 
     right_col_chars = get_map_col(map, x + 1, length, height) 
-
     are_symmetric = are_sequences_same(left_col_chars, right_col_chars)
 
     if are_symmetric and check_symmetricity_of_vertical(map_data, x):
@@ -100,12 +101,14 @@ def check_symmetricity_of_vertical(map_data, left_symmerty_point):
 
   return True
 
-def find_horizontal_symmetry(map_data):
+def find_horizontal_symmetry(map_data, omit = None):
   map = map_data['map']
   length = map_data['length']
   height = map_data['height']
 
   for y in range(height - 1):
+    if omit and y == omit - 1:
+      continue
     up_row_chars = get_map_row(map, y, length, height) 
     down_row_chars = get_map_row(map, y+1, length, height)
     are_same = are_sequences_same(up_row_chars, down_row_chars)
@@ -153,6 +156,51 @@ def check_horizontal_symetry(map_data, up_symmetry_point):
   
   return True
 
+def calculate_patterns_with_smudge(data):
+  horizontal_patterns = []
+  vertical_patterns = []
+
+  for map_data in data:
+    vertical_symmetry = find_vertical_symmetry(map_data)
+    horizontal_symmetry = find_horizontal_symmetry(map_data)
+    new_vertical_symmetry = None
+    new_horizontal_symmetry = None
+
+    map = map_data['map']
+    length = map_data['length']
+    height = map_data['height']
+
+    found = False
+
+    for i in range(len(map)):
+      new_map = [char for char in map]
+      new_map[i] = '#' if map[i] == '.' else '.'
+      new_map = ''.join(new_map)
+
+
+      new_horizontal_symmetry = find_horizontal_symmetry({'map': new_map, 'length': length, 'height': height}, horizontal_symmetry)
+      new_vertical_symmetry = find_vertical_symmetry({'map': new_map, 'length': length, 'height': height}, vertical_symmetry)
+      
+      if new_horizontal_symmetry != None and new_horizontal_symmetry != horizontal_symmetry:
+        horizontal_patterns.append(new_horizontal_symmetry)
+        found = True
+        break
+      if new_vertical_symmetry != None and new_vertical_symmetry != vertical_symmetry:
+        vertical_patterns.append(new_vertical_symmetry)
+        found = True
+        break
+    
+    if not found:
+      if horizontal_symmetry != None:
+        horizontal_patterns.append(horizontal_symmetry)
+      else:
+        vertical_patterns.append(vertical_symmetry)
+  
+  horizontal_patterns_points = [int(point * 100) for point in horizontal_patterns]
+  vertical_patterns_points = [int(point) for point in vertical_patterns]
+
+  return sum(horizontal_patterns_points + vertical_patterns_points)
+
 def get_map_col(map, x, length, height):
   col = []
   for y in range(height):
@@ -166,7 +214,7 @@ def get_map_row(map, y, length, height):
   return row
 
 def are_sequences_same(first, second):
-    return all([first[i] == second[i] for i in range(len(first))])
+  return ''.join(first) == ''.join(second)
 
 def get_x_y_coordinates(index, row_length):
   x = index % row_length
