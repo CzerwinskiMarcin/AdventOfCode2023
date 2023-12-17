@@ -71,7 +71,27 @@ def solve_first_part(data):
   return simulate_beam(beam, tiles.copy(), length, height)
 
 def solve_second_part(data):
-  pass
+  formatted_data = format_data(data)
+  length = formatted_data['length']
+  height = formatted_data['height']
+  tiles = formatted_data['tiles']
+  top_tiles_data = [{'index': x_y_to_index((x, 0), length), 'initial_movement': 'south'} for x in range(length)]
+  bottom_tiles_data = [{'index': x_y_to_index((x, height - 1), length), 'initial_movement': 'north'} for x in range(length)]
+  left_side_tiles = [{'index': x_y_to_index((0, y), length), 'initial_movement': 'east'} for y in range(height)]
+  right_side_tiles = [{'index': x_y_to_index((length - 1, y), length), 'initial_movement': 'west'} for y in range(height)]
+
+  tiles_data = top_tiles_data + bottom_tiles_data + left_side_tiles + right_side_tiles
+
+  largest_energization = 0
+
+  for tile_data in tiles_data:
+    copy_of_tiles = [copy_tile(tile) for tile in tiles]
+    beam =  create_beam(tile_data['index'], tile_data['initial_movement'], False)
+    result = simulate_beam(beam, copy_of_tiles, length, height)
+    if largest_energization < result:
+      largest_energization = result
+
+  return largest_energization
 
 def format_data(data):
   height = len(data)
@@ -88,6 +108,13 @@ def format_data(data):
       tiles_data['tiles'].append(tile)
   
   return tiles_data
+
+def copy_tile(tile):
+  new_tile = {}
+  for key in tile:
+    new_tile[key] = tile[key]
+  new_tile['from_directions'] = []
+  return new_tile
 
 def simulate_beam(beam, tiles, length, height):
   beams = [beam]
@@ -141,6 +168,7 @@ def react_to_tile(beam, tile):
     if beam['direction'] in tile['from_directions']:
       return beam
 
+
     tile['from_directions'].append(beam['direction'])
     movement_modifier = movement_modifier_elements[tile['type']]['data']
     target_movement_modifiers = [modifier for modifier in movement_modifier if modifier['current_direction'] == beam['direction']]
@@ -177,6 +205,6 @@ def print_energized_map(tiles, length):
     if i % length == 0:
       print(sequence)
       sequence = ''
-    sequence += '#' if tiles[i]['energized'] else '.'
+    sequence += '#' if tiles[i]['energized'] and tiles[i]['type'] == '.' else tiles[i]['type'] 
   print(sequence)
     
