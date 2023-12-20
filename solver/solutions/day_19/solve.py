@@ -104,7 +104,6 @@ def get_reverse_paths_from_to(clustered_rules):
 
   while current_target_node != 'in':
     leading_rules = get_paths_with_target(current_target_node, clustered_rules)
-    print(leading_rules)
     break
 
 def get_paths_with_target(target, clustered_rules):
@@ -155,52 +154,152 @@ def get_path_from_a(target, tree):
 
 def calculate_path_combination(path, target, clustered_rules):
   combinations = []
+  min_max_values = {
+    'x': {
+      'min': 1,
+      'max': 4000
+    },
+    'm': {
+      'min': 1,
+      'max': 4000
+    },
+    'a': {
+      'min': 1,
+      'max': 4000
+    },
+    's': {
+      'min': 1,
+      'max': 4000
+    }
+  }
+
   for i in range(len(path) - 1):
     current = path[i]
     next = path[i+1]
-    print(current, next)
-
     rules = clustered_rules[current]
+
     for rule in rules:
       should_meet_rule = rule['target'] == next
-      print(rule, should_meet_rule)
       if should_meet_rule:
-        combinations.append(calculate_combinations_meeting_rule(rule))
+        set_min_max_value_of_meeting_rule(rule, min_max_values)
       else:
-        combinations.append(calculate_combinations_not_meeting_rule(rule))
+        set_min_max_value_of_not_meeting_rule(rule, min_max_values)
+  
+  for i in range(len(path) - 1):
+    current = path[i]
+    next = path[i+1]
+    rules = clustered_rules[current]
 
-      print(combinations[-1])
+    for rule in rules:
+      should_meet_rule = rule['target'] == next
+      if should_meet_rule:
+        print('Meet rule')
+        print(rule)
+        print(min_max_values.get(rule['category'], None))
+        combination = calculate_combinations_meeting_rule(rule, min_max_values)
+        print(combination)
+        print()
+        combinations.append(combination)
+      else:
+        print('Not meet rule')
+        print(rule)
+        print(min_max_values.get(rule['category'], None))
+        combination = calculate_combinations_not_meeting_rule(rule, min_max_values)
+        print(combination)
+        print()
+        combinations.append(combination)
 
-  print(combinations)
-  print()
   distinct_combinations = 1
 
   for combination in combinations:
     distinct_combinations *= combination
   return distinct_combinations
 
-def calculate_combinations_not_meeting_rule(rule):
-  min = 1
-  max = 4000
+def set_min_max_value_of_meeting_rule(rule, min_max_values):
+  print('Set min max for meeting rule')
+  print(rule)
+  if rule['comparision'] == None:
+    return
+
+  print(min_max_values[rule['category']])
+  if rule['comparision'] == '<':
+    current_max = min_max_values[rule['category']]['max']
+    rule_max = rule['value'] - 1
+    if rule_max < current_max:
+      min_max_values[rule['category']]['max'] = rule_max
+  else:
+    current_min = min_max_values[rule['category']]['min']
+    rule_min = rule['value'] + 1
+    if rule_min > current_min:
+      min_max_values[rule['category']]['min'] = rule_min
+  print('Changed', min_max_values[rule['category']])
+  print()
+
+def set_min_max_value_of_not_meeting_rule(rule, min_max_values):
+  print('Set min max for NOT meeting rule')
+  print(rule)
+  if rule['comparision'] == None:
+    return
+  print(min_max_values[rule['category']])
+  if rule['comparision'] == '<':
+    current_min = min_max_values[rule['category']]['min']
+    rule_min = rule['value']
+    if rule_min > current_min:
+      min_max_values[rule['category']]['min'] = rule_min
+  else:
+    current_max = min_max_values[rule['category']]['max']
+    rule_max = rule['value']
+    if rule_max < current_max:
+      min_max_values[rule['category']]['max'] = rule_max
+  print('Changed', min_max_values[rule['category']])
+  print()
+
+def calculate_combinations_not_meeting_rule(rule, min_max_values):
   comparision = rule['comparision']
   value = rule['value']
+
+  if rule['category'] == None:
+    return 1
+
+  min = min_max_values[rule['category']]['min']
+  max = min_max_values[rule['category']]['max']
+  modificator = 0
 
   if comparision == None:
     return 1
   elif comparision == '<':
-    return max - value + 1
+    if min > value:
+      modificator = 1
+      value = min
+    return max - value + modificator
   else:
-    return value
+    if max < value:
+      modificator = 1
+      value = max
+    return value - min + modificator
     
-def calculate_combinations_meeting_rule(rule):
-  min = 1
-  max = 4000
+def calculate_combinations_meeting_rule(rule, min_max_values):
   comparision = rule['comparision']
   value = rule['value']
+
+  if rule['category'] == None:
+    return 1
+
+  min = min_max_values[rule['category']]['min']
+  max = min_max_values[rule['category']]['max']
+  modificator = 0
 
   if comparision == None:
     return 1
   elif comparision == '<':
-    return max - value - 1
+    if max < value:
+      modificator = 1 #if max is lower than value in rule then it counts too
+      value = max
+    print('<', value, min, modificator)
+    return value - min + modificator
   else:
-    return value + 1
+    if min > value:
+      modificator = 1
+      value = min
+    print('>', value, min, modificator)
+    return max - value + modificator
